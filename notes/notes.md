@@ -22,7 +22,7 @@
    `--resource` - generate Go model classes for the new resource
    `--controller` - generate the controller class template
    Notable generated output:  
-   *api/v1/banana_types.go* - model classes  
+   *api/v1/banana_types.go* - model classes. You'll modify them manually later.
    *config/rbac/banana_editor_role.yaml*, *config/rbac/banana_viewer_role.yaml* - cluster roles for Banana resource  
    *controllers/banana_controller.go* - the controller class with event handling/reconciliation logic
    *suite_test.go* - the test suite for your new controller
@@ -30,4 +30,5 @@
 
 6) Add fields to the `BananaSpec`/`BananaStatus` model classes in *api/v1/banana_types.go*.  
    You normally don't need to touch anything else there.
+   Run `make generate` every time you modify `BananaSpec`/`BananaStatus` - it will re-generate *api/v1/zz_generated.deepcopy.go* (you shouldn't touch this file manually, but it's necessary for the app to function).  
    
