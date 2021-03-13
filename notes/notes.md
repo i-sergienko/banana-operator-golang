@@ -32,3 +32,9 @@
    You normally don't need to touch anything else there.
    Run `make generate` every time you modify `BananaSpec`/`BananaStatus` - it will re-generate *api/v1/zz_generated.deepcopy.go* (you shouldn't touch this file manually, but it's necessary for the app to function).  
    
+
+7) Generate CRD manifests by running:  
+   `make manifests`  
+   This will generate:  
+   * The CustomResourceDefinition, with the fields/validation already defined, in *config/crd/bases/fruits.com_bananas.yaml*. You might want to configure additional validation rules for `spec`/`status` here.  
+   * A `manager-role` ClusterRole with permissions to do anything to `Banana` resources, in *config/rbac/role.yaml*. You'll likely want to rename the generated role before deploying the app, if there are multiple Operators running in the cluster (which is typical).  
