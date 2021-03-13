@@ -1,0 +1,24 @@
+# permissions for end users to edit bananas.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: banana-editor-role
+rules:
+- apiGroups:
+  - fruits.com
+  resources:
+  - bananas
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - fruits.com
+  resources:
+  - bananas/status
+  verbs:
+  - get

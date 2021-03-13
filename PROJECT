@@ -2,6 +2,10 @@ domain: fruits.com
 layout: go.kubebuilder.io/v3
 projectName: banana-operator-golang
 repo: github.com/i-sergienko/banana-operator-golang
+resources:
+- crdVersion: v1
+  kind: Banana
+  version: v1
 version: 3-alpha
 plugins:
   manifests.sdk.operatorframework.io/v2: {}

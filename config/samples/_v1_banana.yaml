@@ -1,0 +1,7 @@
+apiVersion: fruits.com/v1
+kind: Banana
+metadata:
+  name: banana-sample
+spec:
+  # Add fields here
+  foo: bar
