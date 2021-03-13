@@ -20,22 +20,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 // BananaSpec defines the desired state of Banana
 type BananaSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
-	// Foo is an example field of Banana. Edit Banana_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	Color string `json:"color,omitempty"`
 }
 
 // BananaStatus defines the observed state of Banana
 type BananaStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	Color string `json:"color,omitempty"`
 }
 
 // +kubebuilder:object:root=true
