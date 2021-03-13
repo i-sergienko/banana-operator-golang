@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"time"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -38,24 +39,45 @@ type BananaReconciler struct {
 // +kubebuilder:rbac:groups=fruits.com,resources=bananas/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=fruits.com,resources=bananas/finalizers,verbs=update
 
-// Reconcile is part of the main kubernetes reconciliation loop which aims to
-// move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the Banana object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
-//
-// For more details, check Reconcile and its Result here:
-// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.7.0/pkg/reconcile
+// Compares the state specified by the Banana object against the actual cluster state, and then
+// performs operations to make the cluster state reflect the state specified by the user.
 func (r *BananaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = r.Log.WithValues("banana", req.NamespacedName)
 
-	// your logic here
+	// Retrieve the Banana being updated
+	banana := &fruitscomv1.Banana{}
+	err := r.Get(ctx, req.NamespacedName, banana)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	// If spec.color != status.color, we need to "paint" the Banana resource
+	if banana.Spec.Color != banana.Status.Color {
+		// Simulate work. In a real app you'd do your useful work here - e.g. call external API, create k8s objects, etc.
+		err = r.PaintBanana(banana)
+
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+
+		// Update the Banana status after painting
+		err = r.Status().Update(context.Background(), banana)
+
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+	}
 
 	return ctrl.Result{}, nil
 }
 
-// SetupWithManager sets up the controller with the Manager.
+func (r *BananaReconciler) PaintBanana(banana *fruitscomv1.Banana) error {
+	// Pretend that painting the Banana takes 3 seconds
+	time.Sleep(3 * time.Second)
+	banana.Status.Color = banana.Spec.Color
+	return nil
+}
+
 func (r *BananaReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&fruitscomv1.Banana{}).

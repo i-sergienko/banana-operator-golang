@@ -39,4 +39,6 @@
    * The CustomResourceDefinition, with the fields/validation already defined, in *config/crd/bases/fruits.com_bananas.yaml*. You might want to configure additional validation rules for `spec`/`status` here.  
    * A `manager-role` ClusterRole with permissions to do anything to `Banana` resources, in *config/rbac/role.yaml*. You'll likely want to rename the generated role before deploying the app, if there are multiple Operators running in the cluster (which is typical).  
    
-8) Implement the event-handling (reconciliation) logic in `BananaReconciler.Reconcile` method (in *controllers/banana_controller.go* file).
+8) Implement the event-handling (reconciliation) logic in `BananaReconciler.Reconcile` method (in *controllers/banana_controller.go* file).  
+   Also place annotations here for ClusterRole permissions for all the needed resources, like this `// +kubebuilder:rbac:groups=fruits.com,resources=bananas/finalizers,verbs=update`.  
+   Run `make manifests` again if you modified the permissions.  
