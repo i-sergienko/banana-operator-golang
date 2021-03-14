@@ -14,7 +14,7 @@ jobs:
       # Build the Docker image and push it into the local registry (set up with Kind)
       # Don't forget to remove the "test" step from "docker-build" target in Makefile - we'll run the tests separately
       - run: export IMG='localhost:5000/banana-controller:latest'; make docker-build; make docker-push
-      # Deploys the image by applying manifests from config/default and config/manager - a Deployment is created
+      # Deploys the image by applying manifests from config/crd, config/rbac and config/manager
       - run: make deploy
       # Run tests
       - run: export USE_EXISTING_CLUSTER=true; make test
