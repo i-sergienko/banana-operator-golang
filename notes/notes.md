@@ -51,10 +51,8 @@
    Run `make manifests` again if you modified the permissions.
 
 9) Implement tests in *controllers/suite_test.go*.  
-   To run tests in a CI pipeline, just run `make test`. This will set up an Envtest environment (local control plane) -
-   no need to set up a k8s cluster manually, or do any other setup.  
-   If you want to run tests on an existing cluster, set the `USE_EXISTING_CLUSTER=true` environment variable - the tests
-   will use your existing `$HOME/.kube/config`.  
+   Launch a Kubernetes cluster (in a CI environment it's easy to use kind), or use an existing one.  
+   Set the `USE_EXISTING_CLUSTER=true` environment variable - that way the tests will use your existing `$HOME/.kube/config` - and run `make test`.  
    NOTE FOR WINDOWS USERS: if you develop on Windows, but run tests in a Linux CI pipeline, check the `generate` target
    in your *Makefile* - there shouldn't be any backslashes (`\\`) - if there are, replace each pair with a forward
    slash (`/`), like this:  
