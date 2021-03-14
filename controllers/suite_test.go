@@ -102,7 +102,7 @@ var _ = Describe("Banana lifecycle", func() {
 		bananas := fruitscomv1.BananaList{}
 		err = k8sClient.List(context.Background(), &bananas, client.InNamespace("default"))
 		Expect(err).NotTo(HaveOccurred())
-		Expect(len(bananas.Items)).To(BeEquivalentTo(0))
+		Expect(len(bananas.Items)).To(BeEquivalentTo(1))
 		Expect(bananas.Items[0].Name).To(BeEquivalentTo("white-banana"))
 		Expect(bananas.Items[0].Spec.Color).To(BeEquivalentTo("white"))
 		Expect(bananas.Items[0].Status.Color).NotTo(BeEquivalentTo("white"))
@@ -114,9 +114,9 @@ var _ = Describe("Banana lifecycle", func() {
 		bananas := fruitscomv1.BananaList{}
 		err := k8sClient.List(context.Background(), &bananas, client.InNamespace("default"))
 		Expect(err).NotTo(HaveOccurred())
-		Expect(len(bananas.Items)).To(BeEquivalentTo(0))
+		Expect(len(bananas.Items)).To(BeEquivalentTo(1))
 		Expect(bananas.Items[0].Name).To(BeEquivalentTo("white-banana"))
 		Expect(bananas.Items[0].Spec.Color).To(BeEquivalentTo("white"))
-		Expect(bananas.Items[0].Status.Color).NotTo(BeEquivalentTo("white"))
+		Expect(bananas.Items[0].Status.Color).To(BeEquivalentTo("white"))
 	})
 })
