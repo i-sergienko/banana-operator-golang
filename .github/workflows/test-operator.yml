@@ -16,7 +16,7 @@ jobs:
       - run: export IMG='localhost:5000/banana-controller:latest'; make docker-build; make docker-push
       # Deploys the image by applying manifests from config/crd, config/rbac and config/manager
       - run: make deploy
-      - run: sleep 2
-      - run: kubectl get pods
+      - run: sleep 4
+      - run: kubectl get pods -n banana-operator-golang-system
       # Run tests
       - run: export USE_EXISTING_CLUSTER=true; make test
