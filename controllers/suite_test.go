@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"k8s.io/apimachinery/pkg/types"
 	"path/filepath"
 	"testing"
 	"time"
@@ -109,14 +110,16 @@ var _ = Describe("Banana lifecycle", func() {
 	})
 
 	It("New Bananas are painted by the controller", func() {
-		time.Sleep(4 * time.Second)
+		time.Sleep(6 * time.Second)
 
-		bananas := fruitscomv1.BananaList{}
-		err := k8sClient.List(context.Background(), &bananas, client.InNamespace("default"))
+		banana := fruitscomv1.Banana{}
+		err := k8sClient.Get(context.Background(), types.NamespacedName{
+			Namespace: "default",
+			Name:      "white-banana",
+		}, &banana)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(len(bananas.Items)).To(BeEquivalentTo(1))
-		Expect(bananas.Items[0].Name).To(BeEquivalentTo("white-banana"))
-		Expect(bananas.Items[0].Spec.Color).To(BeEquivalentTo("white"))
-		Expect(bananas.Items[0].Status.Color).To(BeEquivalentTo("white"))
+		Expect(banana.Name).To(BeEquivalentTo("white-banana"))
+		Expect(banana.Spec.Color).To(BeEquivalentTo("white"))
+		Expect(banana.Status.Color).To(BeEquivalentTo("white"))
 	})
 })
