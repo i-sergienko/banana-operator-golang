@@ -9,4 +9,12 @@ jobs:
         with:
           go-version: '^1.15.5'
       - run: chmod +x ops/scripts/launch-kind.sh; ./ops/scripts/launch-kind.sh
+      # Apply CustomResourceDefinition from config/crd
+      - run: make install
+      # Build the Docker image and push it into the local registry (set up with Kind)
+      # Don't forget to remove the "test" step from "docker-build" target in Makefile - we'll run the tests separately
+      - run: export IMG='localhost:5000/banana-controller:latest'; make docker-build; make docker-push
+      # Deploys the image by applying manifests from config/default and config/manager - a Deployment is created
+      - run: make deploy
+      # Run tests
       - run: export USE_EXISTING_CLUSTER=true; make test

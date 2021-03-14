@@ -50,8 +50,10 @@
    this `// +kubebuilder:rbac:groups=fruits.com,resources=bananas/finalizers,verbs=update`.  
    Run `make manifests` again if you modified the permissions.
 
-9) Implement tests in *controllers/suite_test.go*.  
+9) Implement tests in *controllers/suite_test.go*. https://book.kubebuilder.io/cronjob-tutorial/writing-tests.html  
    Launch a Kubernetes cluster (in a CI environment it's easy to use kind), or use an existing one.  
+   Remove the `test` dependency from `docker-build: test` target in Makefile.  
+     
    Set the `USE_EXISTING_CLUSTER=true` environment variable - that way the tests will use your existing `$HOME/.kube/config` - and run `make test`.  
    NOTE FOR WINDOWS USERS: if you develop on Windows, but run tests in a Linux CI pipeline, check the `generate` target
    in your *Makefile* - there shouldn't be any backslashes (`\\`) - if there are, replace each pair with a forward
