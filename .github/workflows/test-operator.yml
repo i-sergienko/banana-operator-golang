@@ -19,6 +19,6 @@ jobs:
       - run: sleep 30
       - run: kubectl get deploy banana-operator-golang-controller-manager -n banana-operator-golang-system -o yaml
       - run: kubectl get pods -n banana-operator-golang-system
-      - run: kubectl logs banana-operator-golang-controller-manager -n banana-operator-golang-system -c manager
+      - run: kubectl logs deploy/banana-operator-golang-controller-manager -n banana-operator-golang-system -c manager
       # Run tests
       - run: export USE_EXISTING_CLUSTER=true; make test
