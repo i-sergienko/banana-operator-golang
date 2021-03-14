@@ -42,28 +42,32 @@ type BananaReconciler struct {
 // Compares the state specified by the Banana object against the actual cluster state, and then
 // performs operations to make the cluster state reflect the state specified by the user.
 func (r *BananaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = r.Log.WithValues("banana", req.NamespacedName)
+	log := r.Log.WithValues("banana", req.NamespacedName)
 
 	// Retrieve the Banana being updated
 	banana := &fruitscomv1.Banana{}
 	err := r.Get(ctx, req.NamespacedName, banana)
 	if err != nil {
+		log.Error(err, "Failed to retrieve Banana", req.NamespacedName)
 		return ctrl.Result{}, err
 	}
 
 	// If spec.color != status.color, we need to "paint" the Banana resource
 	if banana.Spec.Color != banana.Status.Color {
+		log.Info("Painting Banana", banana)
 		// Simulate work. In a real app you'd do your useful work here - e.g. call external API, create k8s objects, etc.
 		err = r.PaintBanana(banana)
 
 		if err != nil {
+			log.Error(err, "Failed to paint Banana", banana)
 			return ctrl.Result{}, err
 		}
 
-		// Update the Banana status after painting
+		log.Info("Banana painted. Updating Banana Status.", banana)
 		err = r.Status().Update(context.Background(), banana)
 
 		if err != nil {
+			log.Error(err, "Failed to update Banana status", banana)
 			return ctrl.Result{}, err
 		}
 	}
