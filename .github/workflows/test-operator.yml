@@ -17,6 +17,6 @@ jobs:
       # Deploys the image by applying manifests from config/crd, config/rbac and config/manager
       - run: make deploy
       - run: sleep 4
-      - run: kubectl get pods -n banana-operator-golang-system
+      - run: kubectl get deploy banana-operator-golang-controller-manager -n banana-operator-golang-system -o yaml
       # Run tests
       - run: export USE_EXISTING_CLUSTER=true; make test
