@@ -1,5 +1,5 @@
-1) Install Go https://golang.org/doc/install
-2) Install Operator SDK CLI https://sdk.operatorframework.io/docs/installation/
+1) Install Go https://golang.org/doc/install (using go 1.15.5 here)
+2) Install Operator SDK CLI https://sdk.operatorframework.io/docs/installation/ (using v1.3.0-36-gfbce7e7b here)
 
 3) Create and enter the project directory:  
    `mkdir banana-operator-golang`  
