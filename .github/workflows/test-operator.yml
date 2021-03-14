@@ -15,7 +15,7 @@ jobs:
       # Don't forget to remove the "test" step from "docker-build" target in Makefile - we'll run the tests separately
       - run: export IMG='localhost:5000/banana-controller:latest'; make docker-build; make docker-push
       # Deploys the image by applying manifests from config/crd, config/rbac and config/manager
-      - run: make deploy
+      - run: export IMG='localhost:5000/banana-controller:latest'; make deploy
       - run: sleep 4
       - run: kubectl get deploy banana-operator-golang-controller-manager -n banana-operator-golang-system -o yaml
       # Run tests
