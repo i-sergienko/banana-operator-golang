@@ -110,7 +110,7 @@ var _ = Describe("Banana lifecycle", func() {
 	})
 
 	It("New Bananas are painted by the controller", func() {
-		time.Sleep(6 * time.Second)
+		time.Sleep(3 * time.Second)
 
 		banana := fruitscomv1.Banana{}
 		err := k8sClient.Get(context.Background(), types.NamespacedName{

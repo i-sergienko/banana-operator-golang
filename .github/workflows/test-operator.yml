@@ -15,12 +15,6 @@ jobs:
       - run: kind load docker-image banana-controller:v1
       # Deploys the image by applying manifests from config/crd, config/rbac and config/manager
       - run: export IMG='banana-controller:v1'; make deploy
-      # TODO remove
-      - run: kubectl apply -f config/samples/_v1_banana.yaml
-      - run: sleep 30
-      - run: kubectl get deploy banana-operator-golang-controller-manager -n banana-operator-golang-system -o yaml
-      - run: kubectl get pods -n banana-operator-golang-system
-      - run: kubectl logs deploy/banana-operator-golang-controller-manager -n banana-operator-golang-system -c manager
+      - run: sleep 10
       # Run tests
       - run: export USE_EXISTING_CLUSTER=true; make test
-      - run: kubectl logs deploy/banana-operator-golang-controller-manager -n banana-operator-golang-system -c manager
