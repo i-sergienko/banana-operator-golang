@@ -15,6 +15,7 @@ jobs:
       - run: kind load docker-image banana-controller:v1
       # Deploys the image by applying manifests from config/crd, config/rbac and config/manager
       - run: export IMG='banana-controller:v1'; make deploy
-      - run: sleep 10
+      # Wait for the controller application to start
+      - run: sleep 20
       # Run tests
       - run: export USE_EXISTING_CLUSTER=true; make test
