@@ -53,29 +53,38 @@ func (r *BananaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	}
 
 	if banana.DeletionTimestamp == nil {
-		return ctrl.Result{}, r.handleCreateOrUpdate(banana, log)
+		return ctrl.Result{}, r.handleCreateOrUpdate(&ctx, banana, &log)
 	} else {
-		return ctrl.Result{}, nil
+		return ctrl.Result{}, r.handleDelete(&ctx, banana, &log)
 	}
 }
 
-func (r *BananaReconciler) handleCreateOrUpdate(banana *fruitscomv1.Banana, log logr.Logger) error {
-	// If spec.color != status.color, we need to "paint" the Banana resource
-	if banana.Spec.Color != banana.Status.Color {
-		log.Info("Painting Banana.", "bananaResource", banana)
+func (r *BananaReconciler) handleCreateOrUpdate(ctx *context.Context, banana *fruitscomv1.Banana, log *logr.Logger) error {
+	if len(banana.Finalizers) == 0 {
+		// If banana-controller finalizer is not yet present, add it
+		banana.Finalizers = append(banana.Finalizers, "banana-controller")
+		err := r.Update(*ctx, banana)
+
+		if err != nil {
+			(*log).Error(err, "Failed to add finalizer", "bananaResource", banana)
+			return err
+		}
+	} else if banana.Spec.Color != banana.Status.Color {
+		// If spec.color != status.color, we need to "paint" the Banana resource
+		(*log).Info("Painting Banana.", "bananaResource", banana)
 		// Simulate work. In a real app you'd do your useful work here - e.g. call external API, create k8s objects, etc.
 		err := r.PaintBanana(banana)
 
 		if err != nil {
-			log.Error(err, "Failed to paint Banana", "bananaResource", banana)
+			(*log).Error(err, "Failed to paint Banana", "bananaResource", banana)
 			return err
 		}
 
-		log.Info("Banana painted. Updating Banana Status.", "bananaResource", banana)
+		(*log).Info("Banana painted. Updating Banana Status.", "bananaResource", banana)
 		err = r.Status().Update(context.Background(), banana)
 
 		if err != nil {
-			log.Error(err, "Failed to update Banana status", "bananaResource", banana)
+			(*log).Error(err, "Failed to update Banana status", "bananaResource", banana)
 			return err
 		}
 	}
@@ -83,8 +92,17 @@ func (r *BananaReconciler) handleCreateOrUpdate(banana *fruitscomv1.Banana, log 
 	return nil
 }
 
-func (r *BananaReconciler) handleDelete(banana *fruitscomv1.Banana, log logr.Logger) error {
-	log.Info("Banana is being deleted", "bananaResource", banana)
+func (r *BananaReconciler) handleDelete(ctx *context.Context, banana *fruitscomv1.Banana, log *logr.Logger) error {
+	(*log).Info("Banana is being deleted", "bananaResource", banana)
+	if len(banana.Finalizers) > 0 {
+		banana.Finalizers = []string{}
+		err := r.Update(*ctx, banana)
+
+		if err != nil {
+			(*log).Error(err, "Failed remove finalizer", "bananaResource", banana)
+			return err
+		}
+	}
 	return nil
 }
 
