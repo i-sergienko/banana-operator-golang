@@ -52,27 +52,40 @@ func (r *BananaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		return ctrl.Result{}, err
 	}
 
+	if banana.DeletionTimestamp == nil {
+		return ctrl.Result{}, r.handleCreateOrUpdate(banana, log)
+	} else {
+		return ctrl.Result{}, nil
+	}
+}
+
+func (r *BananaReconciler) handleCreateOrUpdate(banana *fruitscomv1.Banana, log logr.Logger) error {
 	// If spec.color != status.color, we need to "paint" the Banana resource
 	if banana.Spec.Color != banana.Status.Color {
-		log.Info("Painting Banana.", "banana", banana)
+		log.Info("Painting Banana.", "bananaResource", banana)
 		// Simulate work. In a real app you'd do your useful work here - e.g. call external API, create k8s objects, etc.
-		err = r.PaintBanana(banana)
+		err := r.PaintBanana(banana)
 
 		if err != nil {
-			log.Error(err, "Failed to paint Banana", "namespacedName", req.NamespacedName)
-			return ctrl.Result{}, err
+			log.Error(err, "Failed to paint Banana", "bananaResource", banana)
+			return err
 		}
 
-		log.Info("Banana painted. Updating Banana Status.", "banana", banana)
+		log.Info("Banana painted. Updating Banana Status.", "bananaResource", banana)
 		err = r.Status().Update(context.Background(), banana)
 
 		if err != nil {
-			log.Error(err, "Failed to update Banana status", "banana", banana)
-			return ctrl.Result{}, err
+			log.Error(err, "Failed to update Banana status", "bananaResource", banana)
+			return err
 		}
 	}
 
-	return ctrl.Result{}, nil
+	return nil
+}
+
+func (r *BananaReconciler) handleDelete(banana *fruitscomv1.Banana, log logr.Logger) error {
+	log.Info("Banana is being deleted", "bananaResource", banana)
+	return nil
 }
 
 func (r *BananaReconciler) PaintBanana(banana *fruitscomv1.Banana) error {
