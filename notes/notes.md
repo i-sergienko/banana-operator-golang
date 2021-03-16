@@ -52,6 +52,7 @@
 
 9) Implement tests in *controllers/suite_test.go*. https://book.kubebuilder.io/cronjob-tutorial/writing-tests.html  
    Launch a Kubernetes cluster (in a CI environment it's easy to use kind), or use an existing one.  
+   If using kind, don't set the image version to `latest` - kind will not load it.  
    Remove the `test` dependency from `docker-build: test` target in Makefile.  
    Remove the Envtest setup from `test` target: we're using an existing cluster, so just leave `go test ./... -coverprofile cover.out`.  
      
