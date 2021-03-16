@@ -13,10 +13,10 @@ jobs:
       - run: make install
       # Build the Docker image and load it into Kind
       # Don't forget to remove the "test" step from "docker-build" target in Makefile - we'll run the tests separately
-      - run: export IMG='banana-controller:latest'; make docker-build
-      - run: kind load docker-image banana-controller:latest
+      - run: export IMG='banana-controller:v1'; make docker-build
+      - run: kind load docker-image banana-controller:v1
       # Deploys the image by applying manifests from config/crd, config/rbac and config/manager
-      - run: export IMG='banana-controller:latest'; make deploy
+      - run: export IMG='banana-controller:v1'; make deploy
       # TODO remove
       - run: kubectl apply -f config/samples/_v1_banana.yaml
       - run: sleep 30
