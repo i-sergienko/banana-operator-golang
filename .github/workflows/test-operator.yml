@@ -8,17 +8,21 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           go-version: '^1.15.5'
-      - run: chmod +x ops/scripts/launch-kind.sh; ./ops/scripts/launch-kind.sh
+      - run: kind create cluster
       # Apply CustomResourceDefinition from config/crd
       - run: make install
-      # Build the Docker image and push it into the local registry (set up with Kind)
+      # Build the Docker image and load it into Kind
       # Don't forget to remove the "test" step from "docker-build" target in Makefile - we'll run the tests separately
-      - run: export IMG='localhost:5000/banana-controller:latest'; make docker-build; make docker-push
+      - run: export IMG='banana-controller:latest'; make docker-build
+      - run: kind load docker-image banana-controller:latest
       # Deploys the image by applying manifests from config/crd, config/rbac and config/manager
-      - run: export IMG='localhost:5000/banana-controller:latest'; make deploy
+      - run: export IMG='banana-controller:latest'; make deploy
+      # TODO remove
+      - run: kubectl apply -f config/samples/_v1_banana.yaml
       - run: sleep 30
       - run: kubectl get deploy banana-operator-golang-controller-manager -n banana-operator-golang-system -o yaml
       - run: kubectl get pods -n banana-operator-golang-system
+      - run: kubectl logs deploy/banana-operator-golang-controller-manager -n banana-operator-golang-system -c manager
       # Run tests
       - run: export USE_EXISTING_CLUSTER=true; make test
       - run: kubectl logs deploy/banana-operator-golang-controller-manager -n banana-operator-golang-system -c manager
