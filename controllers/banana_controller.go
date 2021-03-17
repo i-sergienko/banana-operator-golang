@@ -18,6 +18,8 @@ package controllers
 
 import (
 	"context"
+	"k8s.io/apimachinery/pkg/api/errors"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -35,6 +37,8 @@ type BananaReconciler struct {
 	Scheme *runtime.Scheme
 }
 
+const BananaFinalizer = "bananas.fruits.com/finalizer"
+
 // +kubebuilder:rbac:groups=fruits.com,resources=bananas,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=fruits.com,resources=bananas/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=fruits.com,resources=bananas/finalizers,verbs=update
@@ -48,21 +52,30 @@ func (r *BananaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	banana := &fruitscomv1.Banana{}
 	err := r.Get(ctx, req.NamespacedName, banana)
 	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Info("Banana not found: ignoring resource.", "namespacedName", req.NamespacedName)
+			return ctrl.Result{}, nil
+		}
+
 		log.Error(err, "Failed to retrieve Banana", "namespacedName", req.NamespacedName)
 		return ctrl.Result{}, err
 	}
 
-	if banana.DeletionTimestamp == nil {
+	if banana.GetDeletionTimestamp() == nil {
+		// If deletion timestamp is not present, the resource must have been created or updated
+		// Resource processing is performed in `handleCreateOrUpdate`
 		return ctrl.Result{}, r.handleCreateOrUpdate(&ctx, banana, &log)
 	} else {
+		// If deletion timestamp is there, the resource must have been deleted
+		// Additional cleanup is performed in `handleDelete`
 		return ctrl.Result{}, r.handleDelete(&ctx, banana, &log)
 	}
 }
 
 func (r *BananaReconciler) handleCreateOrUpdate(ctx *context.Context, banana *fruitscomv1.Banana, log *logr.Logger) error {
-	if len(banana.Finalizers) == 0 {
-		// If banana-controller finalizer is not yet present, add it
-		banana.Finalizers = append(banana.Finalizers, "banana-controller")
+	if !controllerutil.ContainsFinalizer(banana, BananaFinalizer) {
+		// If the finalizer is not yet present, add it
+		controllerutil.AddFinalizer(banana, BananaFinalizer)
 		err := r.Update(*ctx, banana)
 
 		if err != nil {
@@ -71,16 +84,15 @@ func (r *BananaReconciler) handleCreateOrUpdate(ctx *context.Context, banana *fr
 		}
 	} else if banana.Spec.Color != banana.Status.Color {
 		// If spec.color != status.color, we need to "paint" the Banana resource
-		(*log).Info("Painting Banana.", "bananaResource", banana)
 		// Simulate work. In a real app you'd do your useful work here - e.g. call external API, create k8s objects, etc.
-		err := r.PaintBanana(banana)
+		err := r.processBanana(banana, log)
 
 		if err != nil {
-			(*log).Error(err, "Failed to paint Banana", "bananaResource", banana)
+			(*log).Error(err, "Failed to process Banana", "bananaResource", banana)
 			return err
 		}
 
-		(*log).Info("Banana painted. Updating Banana Status.", "bananaResource", banana)
+		(*log).Info("Updating Banana Status.", "bananaResource", banana)
 		err = r.Status().Update(context.Background(), banana)
 
 		if err != nil {
@@ -94,8 +106,14 @@ func (r *BananaReconciler) handleCreateOrUpdate(ctx *context.Context, banana *fr
 
 func (r *BananaReconciler) handleDelete(ctx *context.Context, banana *fruitscomv1.Banana, log *logr.Logger) error {
 	(*log).Info("Banana is being deleted", "bananaResource", banana)
-	if len(banana.Finalizers) > 0 {
-		banana.Finalizers = []string{}
+	if controllerutil.ContainsFinalizer(banana, BananaFinalizer) {
+		// Run cleanup logic (external API calls, etc.)
+		if err := r.cleanUpBanana(banana, log); err != nil {
+			return err
+		}
+
+		// Remove the finalizer if cleanup was successful. Once the finalizer is removed, k8s will delete the resource from etcd.
+		controllerutil.RemoveFinalizer(banana, BananaFinalizer)
 		err := r.Update(*ctx, banana)
 
 		if err != nil {
@@ -106,10 +124,19 @@ func (r *BananaReconciler) handleDelete(ctx *context.Context, banana *fruitscomv
 	return nil
 }
 
-func (r *BananaReconciler) PaintBanana(banana *fruitscomv1.Banana) error {
-	// Pretend that painting the Banana takes 3 seconds
+func (r *BananaReconciler) processBanana(banana *fruitscomv1.Banana, log *logr.Logger) error {
+	(*log).Info("Painting Banana", "bananaResource", banana)
+	// Pretend that painting the Banana takes 3 seconds - e.g. external API calls take that much
 	time.Sleep(3 * time.Second)
 	banana.Status.Color = banana.Spec.Color
+	(*log).Info("Banana painted successfully", "bananaResource", banana)
+	return nil
+}
+
+func (r *BananaReconciler) cleanUpBanana(banana *fruitscomv1.Banana, log *logr.Logger) error {
+	(*log).Info("Cleaning up Banana", "bananaResource", banana)
+	time.Sleep(3 * time.Second) // pretend that some external API calls or other cleanup take 3 seconds
+	(*log).Info("Banana cleaned up successfully", "bananaResource", banana)
 	return nil
 }
 

@@ -18,8 +18,10 @@ package controllers
 
 import (
 	"context"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	"path/filepath"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"testing"
 	"time"
 
@@ -92,9 +94,9 @@ var _ = Describe("Banana lifecycle", func() {
 
 	It("A newly created Banana is not painted before processing", func() {
 		banana := fruitscomv1.Banana{
-			Spec: fruitscomv1.BananaSpec{Color: "white"},
+			Spec: fruitscomv1.BananaSpec{Color: "yellow"},
 		}
-		banana.Name = "white-banana"
+		banana.Name = "yellow-banana"
 		banana.Namespace = "default"
 
 		err := k8sClient.Create(context.Background(), &banana)
@@ -104,9 +106,9 @@ var _ = Describe("Banana lifecycle", func() {
 		err = k8sClient.List(context.Background(), &bananas, client.InNamespace("default"))
 		Expect(err).NotTo(HaveOccurred())
 		Expect(len(bananas.Items)).To(BeEquivalentTo(1))
-		Expect(bananas.Items[0].Name).To(BeEquivalentTo("white-banana"))
-		Expect(bananas.Items[0].Spec.Color).To(BeEquivalentTo("white"))
-		Expect(bananas.Items[0].Status.Color).NotTo(BeEquivalentTo("white"))
+		Expect(bananas.Items[0].Name).To(BeEquivalentTo("yellow-banana"))
+		Expect(bananas.Items[0].Spec.Color).To(BeEquivalentTo("yellow"))
+		Expect(bananas.Items[0].Status.Color).NotTo(BeEquivalentTo("yellow"))
 	})
 
 	It("New Bananas are painted by the controller", func() {
@@ -115,11 +117,40 @@ var _ = Describe("Banana lifecycle", func() {
 		banana := fruitscomv1.Banana{}
 		err := k8sClient.Get(context.Background(), types.NamespacedName{
 			Namespace: "default",
-			Name:      "white-banana",
+			Name:      "yellow-banana",
 		}, &banana)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(banana.Name).To(BeEquivalentTo("white-banana"))
-		Expect(banana.Spec.Color).To(BeEquivalentTo("white"))
-		Expect(banana.Status.Color).To(BeEquivalentTo("white"))
+		Expect(banana.Name).To(BeEquivalentTo("yellow-banana"))
+		Expect(banana.Spec.Color).To(BeEquivalentTo("yellow"))
+		Expect(banana.Status.Color).To(BeEquivalentTo("yellow"))
+	})
+
+	It("Deleted bananas go through cleanup logic", func() {
+		banana := fruitscomv1.Banana{}
+		err := k8sClient.Get(context.Background(), types.NamespacedName{
+			Namespace: "default",
+			Name:      "yellow-banana",
+		}, &banana)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(banana.GetDeletionTimestamp()).To(BeNil())
+
+		err = k8sClient.Delete(context.Background(), &banana)
+		Expect(err).NotTo(HaveOccurred())
+
+		err = k8sClient.Get(context.Background(), types.NamespacedName{
+			Namespace: "default",
+			Name:      "yellow-banana",
+		}, &banana)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(controllerutil.ContainsFinalizer(&banana, BananaFinalizer)).To(BeTrue())
+		Expect(banana.GetDeletionTimestamp()).NotTo(BeNil())
+
+		time.Sleep(5 * time.Second)
+		err = k8sClient.Get(context.Background(), types.NamespacedName{
+			Namespace: "default",
+			Name:      "yellow-banana",
+		}, &banana)
+		Expect(err).To(HaveOccurred())
+		Expect(errors.IsNotFound(err)).To(BeTrue())
 	})
 })
